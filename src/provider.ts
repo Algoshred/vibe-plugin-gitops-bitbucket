@@ -36,6 +36,17 @@ const STORAGE_NS = "gitops-bitbucket";
 const KEY_PAT = "pat:default";
 const API_BASE = "https://api.bitbucket.org/2.0";
 
+/**
+ * Resolve the REST API base. Defaults to Bitbucket Cloud, but honours an
+ * explicit `meta.baseUrl` (or `meta.host`) so self-hosted Bitbucket Server /
+ * Data Center — and deterministic E2E replay against a local mock — work
+ * without code changes. The override is normalised (trailing slash trimmed).
+ */
+function resolveApiBase(meta?: Record<string, string>): string {
+  const override = meta?.["baseUrl"] ?? meta?.["host"];
+  return override ? override.replace(/\/$/, "") : API_BASE;
+}
+
 interface StoredAuth {
   kind: "pat" | "oauth" | "app";
   token: string;
@@ -95,6 +106,7 @@ export class BitbucketProvider implements GitOpsProvider {
   private readonly host: HostServices;
   private readonly log: BoundLogger;
   private token: string | null = null;
+  private apiBase = API_BASE;
   private readonly cache = new Map<string, CacheEntry<unknown>>();
 
   constructor(host: HostServices) {
@@ -106,6 +118,7 @@ export class BitbucketProvider implements GitOpsProvider {
     const s = await this.loadAuth();
     if (s) {
       this.token = s.token;
+      this.apiBase = resolveApiBase(s.meta);
       this.log.info("Loaded persisted Bitbucket app-password");
     }
   }
@@ -147,7 +160,7 @@ export class BitbucketProvider implements GitOpsProvider {
   }
 
   private async rest<T>(path: string): Promise<T> {
-    const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+    const url = path.startsWith("http") ? path : `${this.apiBase}${path}`;
     const res = await fetch(url, { headers: this.headers() });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
@@ -258,6 +271,7 @@ export class BitbucketProvider implements GitOpsProvider {
     };
     await this.host.storage?.set(STORAGE_NS, KEY_PAT, JSON.stringify(env));
     this.token = input.token;
+    this.apiBase = resolveApiBase(input.meta);
     this.cache.clear();
   }
 

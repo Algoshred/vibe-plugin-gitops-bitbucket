@@ -43,6 +43,24 @@ describe("BitbucketProvider", () => {
     expect(v.account).toBe("vignesh");
   });
 
+  test("honours meta.baseUrl override (self-hosted / replay)", async () => {
+    const seen: string[] = [];
+    restore = setupMockFetch((url) => {
+      seen.push(url);
+      if (url.endsWith("/user")) return { body: { username: "vignesh" } };
+      return { body: {} };
+    });
+    const p = new BitbucketProvider(stubHost);
+    await p.saveCredentials({
+      kind: "pat",
+      token: "vignesh:abc",
+      meta: { baseUrl: "http://localhost:8771/2.0" },
+    });
+    await p.validateCredentials();
+    expect(seen.some((u) => u.startsWith("http://localhost:8771/2.0/user"))).toBe(true);
+    expect(seen.some((u) => u.startsWith("https://api.bitbucket.org"))).toBe(false);
+  });
+
   test("listRepos maps values[]", async () => {
     restore = setupMockFetch(() => ({
       body: {
