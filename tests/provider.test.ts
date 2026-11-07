@@ -57,8 +57,12 @@ describe("BitbucketProvider", () => {
       meta: { baseUrl: "http://localhost:8771/2.0" },
     });
     await p.validateCredentials();
-    expect(seen.some((u) => u.startsWith("http://localhost:8771/2.0/user"))).toBe(true);
-    expect(seen.some((u) => u.startsWith("https://api.bitbucket.org"))).toBe(false);
+    expect(
+      seen.some((u) => u.startsWith("http://localhost:8771/2.0/user")),
+    ).toBe(true);
+    expect(seen.some((u) => u.startsWith("https://api.bitbucket.org"))).toBe(
+      false,
+    );
   });
 
   test("listRepos maps values[]", async () => {
