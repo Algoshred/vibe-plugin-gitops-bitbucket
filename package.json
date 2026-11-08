@@ -61,10 +61,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/algoshred/vibe-plugin-gitops-bitbucket.git"
+    "url": "git+https://github.com/Algoshred/vibe-plugin-gitops-bitbucket.git"
   },
   "bugs": {
-    "url": "https://github.com/algoshred/vibe-plugin-gitops-bitbucket/issues"
+    "url": "https://github.com/Algoshred/vibe-plugin-gitops-bitbucket/issues"
   },
   "homepage": "https://vibecontrols.com",
   "publishConfig": {
